@@ -37,10 +37,28 @@ SET @saved_cs_client     = @@character_set_client;
  1 AS `Servizio_Categoria`,
  1 AS `Servizio_Data_Erogazione`,
  1 AS `Responsabile`,
+ 1 AS `Responsabile_Email`,
  1 AS `Fornitore`,
  1 AS `Fornitore_PIVA`,
  1 AS `Metadato_Codice`,
- 1 AS `Metadato_Descrizione`*/;
+ 1 AS `Metadato_Descrizione`,
+ 1 AS `IdProfilo`,
+ 1 AS `Profilo_Tipo`,
+ 1 AS `Profilo_Data_Creazione`,
+ 1 AS `IdControllo`,
+ 1 AS `Controllo_Nome`,
+ 1 AS `Controllo_Descrizione`,
+ 1 AS `Controllo_Tipo`,
+ 1 AS `IdSubcategory`,
+ 1 AS `Subcategory_Codice`,
+ 1 AS `Subcategory_Nome`,
+ 1 AS `Subcategory_Categoria`,
+ 1 AS `Subcategory_Funzione`,
+ 1 AS `Copertura`,
+ 1 AS `Maturita`,
+ 1 AS `ProfiloControllo_Note`,
+ 1 AS `AssetControllo_Stato`,
+ 1 AS `AssetControllo_Note`*/;
 SET character_set_client = @saved_cs_client;
 
 --
@@ -83,6 +101,119 @@ LOCK TABLES `asset` WRITE;
 INSERT INTO `asset` VALUES (2,'Software per la gestione del sistema operativo Windows','software','critico','attivo','alto',NULL,9,6,6),(3,'Server Applicativo','hardware','critico','attivo','alto',NULL,6,3,1),(4,'Registro accesso dispositivi','dispositivo','di supporto','attivo','medio',NULL,10,1,3),(5,'Switch di accesso','hardware','di supporto','attivo','basso',NULL,10,2,5),(6,'Strutture dati','dati','non critico','in manutenzione','medio',NULL,1,5,4),(7,'Server Applicativo con specifiche avanzate','hardware','non critico','attivo','basso',3,9,7,11),(8,'Storage centrale','dati','critico','in manutenzione','basso',NULL,5,3,12),(9,'Switch di Rete Locale','dispositivo','non critico','dismesso','basso',NULL,8,10,13),(10,'Cluster Server Dinamico','cloud','critico','attivo','alto',NULL,9,1,15),(11,'Strutture dati di supporto','dati','non critico','attivo','medio',6,1,7,14);
 /*!40000 ALTER TABLE `asset` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_storico_asset_update` AFTER UPDATE ON `asset` FOR EACH ROW BEGIN
+    INSERT INTO Storico_Asset (
+        IdAsset, Nome, Tipo, Classificazione, Stato, Livello_rischio,
+        IdAsset_padre, IdFornitore, IdResponsabile, IdMetadato,
+        Operazione
+    )
+    VALUES (
+        OLD.IdAsset, OLD.Nome, OLD.Tipo, OLD.Classificazione, OLD.Stato, OLD.Livello_rischio,
+        OLD.IdAsset_padre, OLD.IdFornitore, OLD.IdResponsabile, OLD.IdMetadato,
+        'AGGIORNAMENTO'
+    );
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_storico_asset_delete` AFTER DELETE ON `asset` FOR EACH ROW BEGIN
+    INSERT INTO Storico_Asset (
+        IdAsset, Nome, Tipo, Classificazione, Stato, Livello_rischio,
+        IdAsset_padre, IdFornitore, IdResponsabile, IdMetadato,
+        Operazione
+    )
+    VALUES (
+        OLD.IdAsset, OLD.Nome, OLD.Tipo, OLD.Classificazione, OLD.Stato, OLD.Livello_rischio,
+        OLD.IdAsset_padre, OLD.IdFornitore, OLD.IdResponsabile, OLD.IdMetadato,
+        'CANCELLAZIONE'
+    );
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
+-- Table structure for table `asset_controllo`
+--
+
+DROP TABLE IF EXISTS `asset_controllo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `asset_controllo` (
+  `IdAsset_Controllo` int NOT NULL AUTO_INCREMENT,
+  `IdAsset` int NOT NULL,
+  `IdControllo` int NOT NULL,
+  `Stato` enum('applicato','parziale','non applicato','n/a') NOT NULL,
+  `NOTE` varchar(1000) DEFAULT NULL,
+  PRIMARY KEY (`IdAsset_Controllo`),
+  UNIQUE KEY `unq_asset_controllo` (`IdAsset`,`IdControllo`),
+  KEY `fk_ac_controllo` (`IdControllo`),
+  CONSTRAINT `fk_ac_asset` FOREIGN KEY (`IdAsset`) REFERENCES `asset` (`IdAsset`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `fk_ac_controllo` FOREIGN KEY (`IdControllo`) REFERENCES `controllo` (`IdControllo`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `asset_controllo`
+--
+
+LOCK TABLES `asset_controllo` WRITE;
+/*!40000 ALTER TABLE `asset_controllo` DISABLE KEYS */;
+INSERT INTO `asset_controllo` VALUES (16,2,1,'applicato','Inventario aggiornato'),(17,3,1,'applicato','Database finalizzato'),(18,4,5,'parziale','Monitoraggio SIEM in fase di tuning'),(19,5,4,'applicato','Firewall integrato con autenticazione'),(20,6,2,'non applicato','Piano risposta non formalizzato');
+/*!40000 ALTER TABLE `asset_controllo` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `controllo`
+--
+
+DROP TABLE IF EXISTS `controllo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `controllo` (
+  `IdControllo` int NOT NULL AUTO_INCREMENT,
+  `Tipo` enum('organizzativo','tecnico','procedurale') NOT NULL,
+  `Descrizione` varchar(1000) DEFAULT NULL,
+  `Nome` varchar(100) DEFAULT NULL,
+  `IdSubcategory` int NOT NULL,
+  PRIMARY KEY (`IdControllo`),
+  KEY `fk_controllo_subcategory` (`IdSubcategory`),
+  KEY `idx_controllo_nome` (`Nome`),
+  CONSTRAINT `fk_controllo_subcategory` FOREIGN KEY (`IdSubcategory`) REFERENCES `subcategory` (`IdSubcategory`) ON DELETE RESTRICT ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `controllo`
+--
+
+LOCK TABLES `controllo` WRITE;
+/*!40000 ALTER TABLE `controllo` DISABLE KEYS */;
+INSERT INTO `controllo` VALUES (1,'organizzativo','Mantenere un inventario aggiornato degli asset','Inventario aggiornato asset',3),(2,'procedurale','Definizione del piano di risposta','Piano di risposta incidenti',5),(3,'organizzativo','Definizione delle politiche di sicurezza','Politica sicurezza',4),(4,'tecnico','Implementazione di autenticazione','Servizio di autenticazione',5),(5,'tecnico','Monitoraggio eventi tramite SIEM','Sistema SIEM attivo',1);
+/*!40000 ALTER TABLE `controllo` ENABLE KEYS */;
+UNLOCK TABLES;
 
 --
 -- Table structure for table `fornitore`
@@ -117,6 +248,33 @@ LOCK TABLES `fornitore` WRITE;
 INSERT INTO `fornitore` VALUES (1,'CyberItaly','Via Venezia 14','IT12345678901','0298765432','MI12345','cyberitaly@gmail.com','Milano','Tonino Ippolito'),(2,'Spazio SRL','Via Boccaccio 1','IT98765432109','0112233445','M124578','spaziosrl@gmail.com','Roma','Salvatore Dotto'),(3,'Palo Alto Networks','Via Palatucci 1','IT12345601109','0815566778','M345878','palo.networks@gmail.com','Venezia','Arianna Di Mascio'),(4,'Fortinet','Via Leopardi 13','IT23561245687','0511122334','M245879','fortinet@libero.it','Roma','Gianluca Giovanetti'),(5,'CrowdStrike','Via Aterno 12','IT14578126987','0114567890','MI52200','crowdstrike@outlook.it','Milano','Luca Pavone'),(6,'Zscaler','Corso Vittorio 4','IT78987521453','0212345678','MI78456','zscaler.info@gmail.com','Torino','Francesco Tranquilli'),(7,'Cisco','Corso Venezia 69','IT14752689745','0698765432','M0024581','cisco.net@libero.it','Terni','Sofia Folgarait'),(8,'Okta','Via Ferrante 6','IT10100045712','0624680135','MI45789','okta@outlook.com','Siena','Michela Orlando'),(9,'Microsoft','Via Pomezia 39','IT10035487925','0245782145','MI00234','microsoft.help@gmail.com','Avezzano','Antonio Faieta'),(10,'Akamai','Corso Firenze 2','IT98005400689','0635478512','M123548','akamai@gmail.com','Pescara','Sandra Colaiocco');
 /*!40000 ALTER TABLE `fornitore` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Temporary view structure for view `framework_profilo`
+--
+
+DROP TABLE IF EXISTS `framework_profilo`;
+/*!50001 DROP VIEW IF EXISTS `framework_profilo`*/;
+SET @saved_cs_client     = @@character_set_client;
+/*!50503 SET character_set_client = utf8mb4 */;
+/*!50001 CREATE VIEW `framework_profilo` AS SELECT 
+ 1 AS `IdProfilo`,
+ 1 AS `Profilo_Tipo`,
+ 1 AS `Profilo_Descrizione`,
+ 1 AS `Profilo_Data_Creazione`,
+ 1 AS `IdControllo`,
+ 1 AS `Controllo_Nome`,
+ 1 AS `Controllo_Descrizione`,
+ 1 AS `Controllo_Tipo`,
+ 1 AS `IdSubcategory`,
+ 1 AS `Subcategory_Codice`,
+ 1 AS `Subcategory_Nome`,
+ 1 AS `Subcategory_Categoria`,
+ 1 AS `Subcategory_Funzione`,
+ 1 AS `Copertura`,
+ 1 AS `Maturita`,
+ 1 AS `Note_Valutazione`*/;
+SET character_set_client = @saved_cs_client;
 
 --
 -- Table structure for table `metadato`
@@ -192,6 +350,107 @@ SET @saved_cs_client     = @@character_set_client;
 SET character_set_client = @saved_cs_client;
 
 --
+-- Table structure for table `profilo`
+--
+
+DROP TABLE IF EXISTS `profilo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `profilo` (
+  `IdProfilo` int NOT NULL AUTO_INCREMENT,
+  `Tipo` enum('attuale','target') NOT NULL,
+  `Descrizione` varchar(1000) DEFAULT NULL,
+  `Data_creazione` date NOT NULL DEFAULT (curdate()),
+  PRIMARY KEY (`IdProfilo`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `profilo`
+--
+
+LOCK TABLES `profilo` WRITE;
+/*!40000 ALTER TABLE `profilo` DISABLE KEYS */;
+INSERT INTO `profilo` VALUES (1,'attuale','Profilo attuale 1','2026-02-15'),(2,'target','Profilo target 1','2025-12-08'),(3,'attuale','Profilo attuale revisione','2025-04-20'),(4,'target','Profilo target revisione','2022-08-20'),(5,'attuale','Profilo confermato','2023-06-15');
+/*!40000 ALTER TABLE `profilo` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `profilo_controllo`
+--
+
+DROP TABLE IF EXISTS `profilo_controllo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `profilo_controllo` (
+  `IdProfilo_Controllo` int NOT NULL AUTO_INCREMENT,
+  `IdProfilo` int NOT NULL,
+  `IdControllo` int NOT NULL,
+  `Copertura` tinyint unsigned DEFAULT NULL,
+  `Maturita` tinyint unsigned DEFAULT NULL,
+  `NOTE` varchar(1000) DEFAULT NULL,
+  PRIMARY KEY (`IdProfilo_Controllo`),
+  UNIQUE KEY `unq_profilo_controllo` (`IdProfilo`,`IdControllo`),
+  KEY `idx_pc_profilo` (`IdProfilo`),
+  KEY `idx_pc_controllo` (`IdControllo`),
+  CONSTRAINT `fk_pc_controllo` FOREIGN KEY (`IdControllo`) REFERENCES `controllo` (`IdControllo`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_pc_profilo` FOREIGN KEY (`IdProfilo`) REFERENCES `profilo` (`IdProfilo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT `profilo_controllo_chk_1` CHECK (((`Copertura` is null) or ((`Copertura` >= 0) and (`Copertura` <= 100)))),
+  CONSTRAINT `profilo_controllo_chk_2` CHECK (((`Maturita` is null) or ((`Maturita` >= 1) and (`Maturita` <= 5))))
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `profilo_controllo`
+--
+
+LOCK TABLES `profilo_controllo` WRITE;
+/*!40000 ALTER TABLE `profilo_controllo` DISABLE KEYS */;
+INSERT INTO `profilo_controllo` VALUES (1,1,1,80,3,'Inventario quasi completo'),(2,1,2,60,2,'Procedure parzialmente completate'),(3,2,1,100,5,'Inventario completamente aggiornato'),(4,2,4,90,4,'Autenticazione forte implementata'),(5,3,3,70,3,'Politiche sicurezza in revisione');
+/*!40000 ALTER TABLE `profilo_controllo` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_storico_profilo_controllo_update` AFTER UPDATE ON `profilo_controllo` FOR EACH ROW BEGIN
+    INSERT INTO Storico_Profilo_Controllo
+    (IdProfilo, IdControllo, Copertura, Maturita, Note, Operazione)
+    VALUES
+    (OLD.IdProfilo, OLD.IdControllo, OLD.Copertura, OLD.Maturita, OLD.Note, 'AGGIORNAMENTO');
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_storico_profilo_controllo_delete` AFTER DELETE ON `profilo_controllo` FOR EACH ROW BEGIN
+    INSERT INTO Storico_Profilo_Controllo
+    (IdProfilo, IdControllo, Copertura, Maturita, Note, Operazione)
+    VALUES
+    (OLD.IdProfilo, OLD.IdControllo, OLD.Copertura, OLD.Maturita, OLD.Note, 'CANCELLAZIONE');
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+
+--
 -- Table structure for table `responsabile`
 --
 
@@ -264,6 +523,58 @@ LOCK TABLES `servizio` WRITE;
 INSERT INTO `servizio` VALUES (1,'Servizio di continuità operativa','I sistemi informativi rimangano funzionanti durante interruzioni o guasti','essenziale','2018-08-17',NULL,9,4,2),(2,'Servizio Monitoraggio Endpoint','Monitora in modo continuo lo stato dei dispositivi rilevando anomalie se presenti','essenziale','2022-01-10',NULL,10,5,9),(3,'Servizio Firewall Perimetrale','Protegge la rete aziendale','essenziale','2010-11-24',NULL,6,2,8),(4,'Servizio Gestione Risorse IT','Coordina la gestione delle risorse informatiche','di supporto','2023-07-22',NULL,9,6,10),(5,'Servizio di Autenticazione','Gestisce l’autenticazione centralizzata','essenziale','2017-03-11',NULL,7,1,7),(6,'Servizio di Sicurezza Endpoint','ervizio dedicato alla protezione dei dispositivi aziendali','di supporto','2023-08-23',2,10,8,16),(7,'Servizio di Gestione Normativa Aziendale','Gestisce e applica le normative operative e documentali,','essenziale','2024-11-30',4,9,5,17),(8,'Servizio di Architettura Applicativa','Definisce e mantiene l’architettura dei sistemi','essenziale','2017-03-23',NULL,3,5,18),(9,'Servizio di Coordinamento Organizzativo','Supporta i processi interni per l’adeguamento operativo','di supporto','2019-12-03',1,9,8,19),(10,'Servizio di Cyber Defense','Specializzato nella prevenzione, monitoraggio e risposta agli incidenti','essenziale','2025-04-10',NULL,3,2,20);
 /*!40000 ALTER TABLE `servizio` ENABLE KEYS */;
 UNLOCK TABLES;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_storico_servizio_update` AFTER UPDATE ON `servizio` FOR EACH ROW BEGIN
+    INSERT INTO Storico_Servizio (
+        IdServizio, Nome, Descrizione, Categoria, Data_erogazione,
+        IdServizio_padre, IdFornitore, IdResponsabile, IdMetadato,
+        Operazione
+    )
+    VALUES (
+        OLD.IdServizio, OLD.Nome, OLD.Descrizione, OLD.Categoria, OLD.Data_erogazione,
+        OLD.IdServizio_padre, OLD.IdFornitore, OLD.IdResponsabile, OLD.IdMetadato,
+        'AGGIORNAMENTO'
+    );
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
+/*!50003 SET @saved_cs_client      = @@character_set_client */ ;
+/*!50003 SET @saved_cs_results     = @@character_set_results */ ;
+/*!50003 SET @saved_col_connection = @@collation_connection */ ;
+/*!50003 SET character_set_client  = utf8mb4 */ ;
+/*!50003 SET character_set_results = utf8mb4 */ ;
+/*!50003 SET collation_connection  = utf8mb4_0900_ai_ci */ ;
+/*!50003 SET @saved_sql_mode       = @@sql_mode */ ;
+/*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;
+DELIMITER ;;
+/*!50003 CREATE*/ /*!50017 DEFINER=`root`@`localhost`*/ /*!50003 TRIGGER `trg_storico_servizio_delete` AFTER DELETE ON `servizio` FOR EACH ROW BEGIN
+    INSERT INTO Storico_Servizio (
+        IdServizio, Nome, Descrizione, Categoria, Data_erogazione,
+        IdServizio_padre, IdFornitore, IdResponsabile, IdMetadato,
+        Operazione
+    )
+    VALUES (
+        OLD.IdServizio, OLD.Nome, OLD.Descrizione, OLD.Categoria, OLD.Data_erogazione,
+        OLD.IdServizio_padre, OLD.IdFornitore, OLD.IdResponsabile, OLD.IdMetadato,
+        'CANCELLAZIONE'
+    );
+END */;;
+DELIMITER ;
+/*!50003 SET sql_mode              = @saved_sql_mode */ ;
+/*!50003 SET character_set_client  = @saved_cs_client */ ;
+/*!50003 SET character_set_results = @saved_cs_results */ ;
+/*!50003 SET collation_connection  = @saved_col_connection */ ;
 
 --
 -- Table structure for table `servizio_asset`
@@ -292,6 +603,36 @@ LOCK TABLES `servizio_asset` WRITE;
 /*!40000 ALTER TABLE `servizio_asset` DISABLE KEYS */;
 INSERT INTO `servizio_asset` VALUES (1,1,2),(2,1,10),(3,2,7),(4,2,9),(5,3,3),(6,3,5),(7,4,4),(8,4,6),(9,5,3),(10,5,7),(11,6,4),(12,6,9),(13,7,6),(14,7,11),(15,8,7),(16,8,10),(17,10,5),(18,10,8);
 /*!40000 ALTER TABLE `servizio_asset` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `servizio_controllo`
+--
+
+DROP TABLE IF EXISTS `servizio_controllo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `servizio_controllo` (
+  `IdServizio_Controllo` int NOT NULL AUTO_INCREMENT,
+  `IdServizio` int NOT NULL,
+  `IdControllo` int NOT NULL,
+  `NOTE` varchar(1000) DEFAULT NULL,
+  PRIMARY KEY (`IdServizio_Controllo`),
+  UNIQUE KEY `unq_servizio_controllo` (`IdServizio`,`IdControllo`),
+  KEY `fk_sc_controllo` (`IdControllo`),
+  CONSTRAINT `fk_sc_controllo` FOREIGN KEY (`IdControllo`) REFERENCES `controllo` (`IdControllo`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_sc_servizio` FOREIGN KEY (`IdServizio`) REFERENCES `servizio` (`IdServizio`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `servizio_controllo`
+--
+
+LOCK TABLES `servizio_controllo` WRITE;
+/*!40000 ALTER TABLE `servizio_controllo` DISABLE KEYS */;
+INSERT INTO `servizio_controllo` VALUES (1,1,4,'Autenticazione nel servizio'),(2,2,2,'Backup piano incidenti'),(3,3,5,'Monitoraggio tramite SIEM'),(4,4,3,'Servizio conforme alla politica sicurezza'),(5,5,1,'Servizio registrato nell’inventario');
+/*!40000 ALTER TABLE `servizio_controllo` ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -330,6 +671,35 @@ INSERT INTO `storico_asset` VALUES (1,1,'Asset di test','hardware','critico','at
 UNLOCK TABLES;
 
 --
+-- Table structure for table `storico_profilo_controllo`
+--
+
+DROP TABLE IF EXISTS `storico_profilo_controllo`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `storico_profilo_controllo` (
+  `IdStorico` int NOT NULL AUTO_INCREMENT,
+  `IdProfilo` int NOT NULL,
+  `IdControllo` int NOT NULL,
+  `Copertura` int DEFAULT NULL,
+  `Maturita` int DEFAULT NULL,
+  `Note` varchar(500) DEFAULT NULL,
+  `Operazione` enum('AGGIORNAMENTO','CANCELLAZIONE') NOT NULL,
+  `Data_operazione` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`IdStorico`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `storico_profilo_controllo`
+--
+
+LOCK TABLES `storico_profilo_controllo` WRITE;
+/*!40000 ALTER TABLE `storico_profilo_controllo` DISABLE KEYS */;
+/*!40000 ALTER TABLE `storico_profilo_controllo` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
 -- Table structure for table `storico_servizio`
 --
 
@@ -364,6 +734,44 @@ INSERT INTO `storico_servizio` VALUES (1,1,'Servizio di test','Gestione delle id
 UNLOCK TABLES;
 
 --
+-- Table structure for table `subcategory`
+--
+
+DROP TABLE IF EXISTS `subcategory`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `subcategory` (
+  `IdSubcategory` int NOT NULL AUTO_INCREMENT,
+  `Codice` varchar(50) NOT NULL,
+  `Nome` varchar(150) NOT NULL,
+  `Descrizione` varchar(1000) DEFAULT NULL,
+  `Categoria` varchar(100) NOT NULL,
+  `Funzione` varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`IdSubcategory`),
+  UNIQUE KEY `Codice` (`Codice`),
+  KEY `idx_subcategory_codice` (`Codice`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `subcategory`
+--
+
+LOCK TABLES `subcategory` WRITE;
+/*!40000 ALTER TABLE `subcategory` DISABLE KEYS */;
+INSERT INTO `subcategory` VALUES (1,'DE.CM-1','Monitoraggio','Monitoraggio continuo delle attività','Detect','Continuous Monitoring'),(2,'RS.RP-1','Pianificazione di risposta','Pianificazione delle attività','Respond','Response Planning'),(3,'ID.AM-1','Inventario Asset','Inventario degli asset','Identify','Asset Management'),(4,'ID.GV-1','Governance Cyber','Definizione politiche di sicurezza','Identify','Governance'),(5,'PR.AC-1','Controllo Accessi','Gestione degli accessi e delle identità','Protect','Access Control');
+/*!40000 ALTER TABLE `subcategory` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Dumping events for database 'profili_acn'
+--
+
+--
+-- Dumping routines for database 'profili_acn'
+--
+
+--
 -- Final view structure for view `acn_profilo`
 --
 
@@ -376,7 +784,25 @@ UNLOCK TABLES;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
 /*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
-/*!50001 VIEW `acn_profilo` AS select `a`.`IdAsset` AS `IdAsset`,`a`.`Nome` AS `Asset`,`a`.`Tipo` AS `Asset_Tipo`,`a`.`Classificazione` AS `Asset_Classificazione`,`a`.`Stato` AS `Asset_Stato`,`a`.`Livello_rischio` AS `Asset_Livello_Rischio`,`s`.`IdServizio` AS `IdServizio`,`s`.`Nome` AS `Servizio`,`s`.`Categoria` AS `Servizio_Categoria`,`s`.`Data_erogazione` AS `Servizio_Data_Erogazione`,concat(`r`.`Nome`,' ',`r`.`Cognome`) AS `Responsabile`,`f`.`Ragione_sociale` AS `Fornitore`,`f`.`Partita_IVA` AS `Fornitore_PIVA`,`m`.`Codice` AS `Metadato_Codice`,`m`.`Descrizione` AS `Metadato_Descrizione` from (((((`asset` `a` left join `servizio_asset` `sa` on((`a`.`IdAsset` = `sa`.`IdAsset`))) left join `servizio` `s` on((`sa`.`IdServizio` = `s`.`IdServizio`))) left join `responsabile` `r` on((`a`.`IdResponsabile` = `r`.`IdResponsabile`))) left join `fornitore` `f` on((`a`.`IdFornitore` = `f`.`IdFornitore`))) left join `metadato` `m` on((`a`.`IdMetadato` = `m`.`IdMetadato`))) */;
+/*!50001 VIEW `acn_profilo` AS select `a`.`IdAsset` AS `IdAsset`,`a`.`Nome` AS `Asset`,`a`.`Tipo` AS `Asset_Tipo`,`a`.`Classificazione` AS `Asset_Classificazione`,`a`.`Stato` AS `Asset_Stato`,`a`.`Livello_rischio` AS `Asset_Livello_Rischio`,`s`.`IdServizio` AS `IdServizio`,`s`.`Nome` AS `Servizio`,`s`.`Categoria` AS `Servizio_Categoria`,`s`.`Data_erogazione` AS `Servizio_Data_Erogazione`,concat(`r`.`Nome`,' ',`r`.`Cognome`) AS `Responsabile`,`r`.`Email` AS `Responsabile_Email`,`f`.`Ragione_sociale` AS `Fornitore`,`f`.`Partita_IVA` AS `Fornitore_PIVA`,`m`.`Codice` AS `Metadato_Codice`,`m`.`Descrizione` AS `Metadato_Descrizione`,`p`.`IdProfilo` AS `IdProfilo`,`p`.`Tipo` AS `Profilo_Tipo`,`p`.`Data_creazione` AS `Profilo_Data_Creazione`,`c`.`IdControllo` AS `IdControllo`,`c`.`Nome` AS `Controllo_Nome`,`c`.`Descrizione` AS `Controllo_Descrizione`,`c`.`Tipo` AS `Controllo_Tipo`,`sc`.`IdSubcategory` AS `IdSubcategory`,`sc`.`Codice` AS `Subcategory_Codice`,`sc`.`Nome` AS `Subcategory_Nome`,`sc`.`Categoria` AS `Subcategory_Categoria`,`sc`.`Funzione` AS `Subcategory_Funzione`,`pc`.`Copertura` AS `Copertura`,`pc`.`Maturita` AS `Maturita`,`pc`.`NOTE` AS `ProfiloControllo_Note`,`ac`.`Stato` AS `AssetControllo_Stato`,`ac`.`NOTE` AS `AssetControllo_Note` from ((((((((((`asset` `a` left join `servizio_asset` `sa` on((`a`.`IdAsset` = `sa`.`IdAsset`))) left join `servizio` `s` on((`sa`.`IdServizio` = `s`.`IdServizio`))) left join `responsabile` `r` on((`a`.`IdResponsabile` = `r`.`IdResponsabile`))) left join `fornitore` `f` on((`a`.`IdFornitore` = `f`.`IdFornitore`))) left join `metadato` `m` on((`a`.`IdMetadato` = `m`.`IdMetadato`))) left join `asset_controllo` `ac` on((`a`.`IdAsset` = `ac`.`IdAsset`))) left join `controllo` `c` on((`ac`.`IdControllo` = `c`.`IdControllo`))) left join `subcategory` `sc` on((`c`.`IdSubcategory` = `sc`.`IdSubcategory`))) left join `profilo_controllo` `pc` on((`c`.`IdControllo` = `pc`.`IdControllo`))) left join `profilo` `p` on((`pc`.`IdProfilo` = `p`.`IdProfilo`))) */;
+/*!50001 SET character_set_client      = @saved_cs_client */;
+/*!50001 SET character_set_results     = @saved_cs_results */;
+/*!50001 SET collation_connection      = @saved_col_connection */;
+
+--
+-- Final view structure for view `framework_profilo`
+--
+
+/*!50001 DROP VIEW IF EXISTS `framework_profilo`*/;
+/*!50001 SET @saved_cs_client          = @@character_set_client */;
+/*!50001 SET @saved_cs_results         = @@character_set_results */;
+/*!50001 SET @saved_col_connection     = @@collation_connection */;
+/*!50001 SET character_set_client      = utf8mb4 */;
+/*!50001 SET character_set_results     = utf8mb4 */;
+/*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
+/*!50001 CREATE ALGORITHM=UNDEFINED */
+/*!50013 DEFINER=`root`@`localhost` SQL SECURITY DEFINER */
+/*!50001 VIEW `framework_profilo` AS select `p`.`IdProfilo` AS `IdProfilo`,`p`.`Tipo` AS `Profilo_Tipo`,`p`.`Descrizione` AS `Profilo_Descrizione`,`p`.`Data_creazione` AS `Profilo_Data_Creazione`,`c`.`IdControllo` AS `IdControllo`,`c`.`Nome` AS `Controllo_Nome`,`c`.`Descrizione` AS `Controllo_Descrizione`,`c`.`Tipo` AS `Controllo_Tipo`,`sc`.`IdSubcategory` AS `IdSubcategory`,`sc`.`Codice` AS `Subcategory_Codice`,`sc`.`Nome` AS `Subcategory_Nome`,`sc`.`Categoria` AS `Subcategory_Categoria`,`sc`.`Funzione` AS `Subcategory_Funzione`,`pc`.`Copertura` AS `Copertura`,`pc`.`Maturita` AS `Maturita`,`pc`.`NOTE` AS `Note_Valutazione` from (((`profilo` `p` left join `profilo_controllo` `pc` on((`p`.`IdProfilo` = `pc`.`IdProfilo`))) left join `controllo` `c` on((`pc`.`IdControllo` = `c`.`IdControllo`))) left join `subcategory` `sc` on((`c`.`IdSubcategory` = `sc`.`IdSubcategory`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
 /*!50001 SET collation_connection      = @saved_col_connection */;
@@ -426,4 +852,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-01-18 16:42:16
+-- Dump completed on 2026-02-21 15:23:59
